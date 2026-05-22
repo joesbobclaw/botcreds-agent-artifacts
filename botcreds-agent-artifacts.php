@@ -15,6 +15,8 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+define( 'BOTCREDS_ARTIFACTS_VERSION', '1.1.0' );
+
 class BotCreds_Agent_Artifacts {
 
 	private static $instance = null;
@@ -123,9 +125,14 @@ class BotCreds_Agent_Artifacts {
 			wp_mkdir_p( $artifact_dir );
 		}
 
-		// Clear old files.
+		// Clear old files via WP_Filesystem.
+		global $wp_filesystem;
+		if ( empty( $wp_filesystem ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			WP_Filesystem();
+		}
 		foreach ( glob( $artifact_dir . '/*' ) as $file ) {
-			if ( is_file( $file ) ) unlink( $file );
+			if ( is_file( $file ) ) wp_delete_file( $file );
 		}
 
 		libxml_use_internal_errors( true );
@@ -141,7 +148,7 @@ class BotCreds_Agent_Artifacts {
 			$css = $style->textContent;
 			if ( trim( $css ) ) {
 				$filename = "style-{$style_index}.css";
-				file_put_contents( $artifact_dir . '/' . $filename, $css );
+				$wp_filesystem->put_contents( $artifact_dir . '/' . $filename, $css, FS_CHMOD_FILE );
 				$assets['styles'][] = [
 					'handle' => "artifact-{$post_id}-style-{$style_index}",
 					'url'    => $artifact_url . '/' . $filename,
@@ -163,14 +170,14 @@ class BotCreds_Agent_Artifacts {
 			if ( $src ) {
 				$assets['scripts'][] = [
 					'handle'   => "artifact-{$post_id}-ext-{$script_index}",
-					'url'      => $src,
+					'url'      => esc_url_raw( $src ),
 					'external' => true,
 				];
 			} else {
 				$js = $script->textContent;
 				if ( trim( $js ) ) {
 					$filename = "script-{$script_index}.js";
-					file_put_contents( $artifact_dir . '/' . $filename, $js );
+					$wp_filesystem->put_contents( $artifact_dir . '/' . $filename, $js, FS_CHMOD_FILE );
 					$assets['scripts'][] = [
 						'handle'   => "artifact-{$post_id}-script-{$script_index}",
 						'url'      => $artifact_url . '/' . $filename,
@@ -228,7 +235,7 @@ class BotCreds_Agent_Artifacts {
 				$style['handle'],
 				$style['url'],
 				[],
-				filemtime( $this->url_to_path( $style['url'] ) ) ?: null
+				filemtime( $this->url_to_path( $style['url'] ) ) ?: BOTCREDS_ARTIFACTS_VERSION
 			);
 		}
 
@@ -237,7 +244,7 @@ class BotCreds_Agent_Artifacts {
 				$script['handle'],
 				$script['url'],
 				[],
-				$script['external'] ? null : ( filemtime( $this->url_to_path( $script['url'] ) ) ?: null ),
+				$script['external'] ? null : ( filemtime( $this->url_to_path( $script['url'] ) ) ?: BOTCREDS_ARTIFACTS_VERSION ),
 				true
 			);
 		}
