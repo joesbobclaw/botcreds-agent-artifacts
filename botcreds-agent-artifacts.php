@@ -3,7 +3,7 @@
  * Plugin Name:       BotCreds Agent Artifacts
  * Plugin URI:        https://botcreds.com/agent-artifacts
  * Description:       Deploy HTML/CSS/JS artifacts to WordPress via REST API. Built for AI agents.
- * Version:           1.1.0
+ * Version:           1.3.1
  * Author:            BotCreds
  * Author URI:        https://botcreds.com
  * License:           GPL-2.0-or-later
@@ -15,7 +15,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'BOTCREDS_ARTIFACTS_VERSION', '1.1.0' );
+define( 'BOTCREDS_ARTIFACTS_VERSION', '1.3.1' );
 
 class BotCreds_Agent_Artifacts {
 
@@ -86,6 +86,26 @@ class BotCreds_Agent_Artifacts {
 			'single'       => true,
 			'show_in_rest' => false,
 		] );
+
+		// Explicit connect-src allowlist — settable at deploy time via REST.
+		register_post_meta( 'artifact', 'artifact_connect_src', [
+			'type'         => 'array',
+			'single'       => true,
+			'show_in_rest' => [
+				'schema' => [
+					'type'  => 'array',
+					'items' => [ 'type' => 'string' ],
+				],
+			],
+			'auth_callback' => fn() => current_user_can( 'edit_artifacts' ),
+		] );
+
+		// Internal: merged + sanitized origins (pragma + explicit meta).
+		register_post_meta( 'artifact', '_artifact_connect_src', [
+			'type'         => 'array',
+			'single'       => true,
+			'show_in_rest' => false,
+		] );
 	}
 
 	/**
@@ -105,12 +125,37 @@ class BotCreds_Agent_Artifacts {
 		$parsed = $this->parse_html( $raw_html, $post->ID );
 		update_post_meta( $post->ID, '_artifact_body',   $parsed['body'] );
 		update_post_meta( $post->ID, '_artifact_assets', $parsed['assets'] );
+
+		// Merge pragma origins with explicit meta field, then sanitize.
+		$origins  = $parsed['connect_src'];
+		$explicit = get_post_meta( $post->ID, 'artifact_connect_src', true );
+		if ( ! empty( $explicit ) && is_array( $explicit ) ) {
+			$origins = array_merge( $origins, $explicit );
+		}
+		// Allow only https:// origins — no wildcards, no http.
+		$origins = array_values( array_unique( array_filter( $origins, function ( $o ) {
+			return (bool) preg_match( '#^https://[a-zA-Z0-9._:/-]+$#', $o );
+		} ) ) );
+		update_post_meta( $post->ID, '_artifact_connect_src', $origins );
 	}
 
 	/**
 	 * Parse HTML and extract scripts/styles to separate files.
 	 */
 	public function parse_html( $html, $post_id ) {
+		// Extract <!-- artifact:fetch https://api.example.com --> pragmas.
+		$connect_src = [];
+		$html = preg_replace_callback(
+			'/<!--\s*artifact:fetch\s+(.*?)\s*-->/is',
+			function ( $m ) use ( &$connect_src ) {
+				foreach ( preg_split( '/\s+/', trim( $m[1] ) ) as $origin ) {
+					if ( $origin ) $connect_src[] = $origin;
+				}
+				return ''; // strip pragma from rendered HTML
+			},
+			$html
+		);
+
 		$assets = [
 			'styles'  => [],
 			'scripts' => [],
@@ -214,8 +259,9 @@ class BotCreds_Agent_Artifacts {
 		$body_html = preg_replace( '/<\/?body[^>]*>/',  '', $body_html );
 
 		return [
-			'body'   => trim( $body_html ),
-			'assets' => $assets,
+			'body'        => trim( $body_html ),
+			'assets'      => $assets,
+			'connect_src' => $connect_src,
 		];
 	}
 

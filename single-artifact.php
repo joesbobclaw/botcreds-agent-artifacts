@@ -40,13 +40,30 @@ header( 'Referrer-Policy: strict-origin-when-cross-origin' );
 $upload_dir    = wp_upload_dir();
 $artifacts_url = $upload_dir['baseurl'] . '/artifacts/';
 
+// Trusted CDN origins — scripts, styles, and fonts.
+$cdn_origins = implode( ' ', [
+	'https://cdn.jsdelivr.net',
+	'https://unpkg.com',
+	'https://cdnjs.cloudflare.com',
+	'https://esm.sh',
+	'https://cdn.skypack.dev',
+] );
+
+// Per-artifact fetch allowlist — set via pragma or deploy-time meta.
+$artifact_connect_src = get_post_meta( $post_id, '_artifact_connect_src', true );
+$connect_src_value    = "'self'";
+if ( ! empty( $artifact_connect_src ) && is_array( $artifact_connect_src ) ) {
+	$safe_origins      = implode( ' ', array_map( 'esc_url_raw', $artifact_connect_src ) );
+	$connect_src_value = "'self' {$safe_origins}";
+}
+
 $csp_parts = [
 	"default-src 'self'",
-	"script-src 'self' {$artifacts_url}",
-	"style-src 'self' 'unsafe-inline' {$artifacts_url}",
-	"img-src 'self' data: blob:",
-	"font-src 'self' data:",
-	"connect-src 'self'",
+	"script-src 'self' {$artifacts_url} {$cdn_origins}",
+	"style-src 'self' 'unsafe-inline' {$artifacts_url} {$cdn_origins} https://fonts.googleapis.com",
+	"img-src 'self' data: blob: https://pixel.wp.com https://stats.wordpress.com",
+	"font-src 'self' data: https://fonts.gstatic.com {$cdn_origins}",
+	"connect-src {$connect_src_value} https://pixel.wp.com https://stats.wordpress.com",
 	"frame-src 'none'",
 	"frame-ancestors 'self'",
 	"form-action 'self'",
