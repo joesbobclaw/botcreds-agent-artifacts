@@ -17,8 +17,11 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 function botcreds_artifacts_branding_bar( $title ) {
 	$back_url  = home_url( '/artifacts/' );
 	$title_esc = esc_html( $title );
+	$robot     = "\xf0\x9f\xa4\x96"; // 🤖 (double-quoted for escape parsing)
+	$arrow     = "\xe2\x86\x90";     // ←
 	return '<style>
-.botcreds-bar{position:fixed;top:0;left:0;right:0;height:44px;background:#fff;border-bottom:1px solid #e5e7eb;box-shadow:0 1px 4px rgba(0,0,0,.07);display:flex;align-items:center;padding:0 20px;gap:14px;z-index:9999;font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;font-size:13px;line-height:1;box-sizing:border-box}
+.botcreds-bar{position:fixed;top:0;left:0;right:0;height:44px;background:#fff;border-bottom:1px solid #e5e7eb;box-shadow:0 1px 4px rgba(0,0,0,.07);display:flex;align-items:center;padding:0 20px;gap:14px;z-index:100001;font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;font-size:13px;line-height:1;box-sizing:border-box}
+body.admin-bar .botcreds-bar{top:32px}@media screen and (max-width:782px){body.admin-bar .botcreds-bar{top:46px}}
 .botcreds-bar__logo{display:flex;align-items:center;gap:6px;color:#1e1b4b;font-weight:700;font-size:14px;text-decoration:none;white-space:nowrap;letter-spacing:-.01em}
 .botcreds-bar__logo:hover{color:#4f46e5}
 .botcreds-bar__icon{font-size:16px;line-height:1}
@@ -28,9 +31,9 @@ function botcreds_artifacts_branding_bar( $title ) {
 @media(max-width:480px){.botcreds-bar__title{display:none}.botcreds-bar__back{font-size:11px;padding:4px 8px}}
 </style>
 <nav class="botcreds-bar" aria-label="BotCreds">
-<a class="botcreds-bar__logo" href="https://botcreds.com" target="_blank" rel="noopener"><span class="botcreds-bar__icon" aria-hidden="true">\xf0\x9f\xa4\x96</span><span class="botcreds-bar__name">BotCreds</span></a>
+<a class="botcreds-bar__logo" href="https://botcreds.com" target="_blank" rel="noopener"><span class="botcreds-bar__icon" aria-hidden="true">' . $robot . '</span><span class="botcreds-bar__name">BotCreds</span></a>
 <span class="botcreds-bar__title">' . $title_esc . '</span>
-<a class="botcreds-bar__back" href="' . esc_url( $back_url ) . '"><span aria-hidden="true">\xe2\x86\x90</span> All Artifacts</a>
+<a class="botcreds-bar__back" href="' . esc_url( $back_url ) . '">' . $arrow . ' All Artifacts</a>
 </nav>';
 }
 
