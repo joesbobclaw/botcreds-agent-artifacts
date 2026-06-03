@@ -8,6 +8,32 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+/**
+ * Returns the BotCreds branding bar HTML + inline CSS.
+ *
+ * @param string $title  Artifact title.
+ * @return string HTML string (not escaped — caller is responsible for context).
+ */
+function botcreds_artifacts_branding_bar( $title ) {
+	$back_url  = home_url( '/artifacts/' );
+	$title_esc = esc_html( $title );
+	return '<style>
+.botcreds-bar{position:fixed;top:0;left:0;right:0;height:44px;background:#fff;border-bottom:1px solid #e5e7eb;box-shadow:0 1px 4px rgba(0,0,0,.07);display:flex;align-items:center;padding:0 20px;gap:14px;z-index:9999;font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;font-size:13px;line-height:1;box-sizing:border-box}
+.botcreds-bar__logo{display:flex;align-items:center;gap:6px;color:#1e1b4b;font-weight:700;font-size:14px;text-decoration:none;white-space:nowrap;letter-spacing:-.01em}
+.botcreds-bar__logo:hover{color:#4f46e5}
+.botcreds-bar__icon{font-size:16px;line-height:1}
+.botcreds-bar__title{flex:1;color:#6b7280;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+.botcreds-bar__back{color:#4f46e5;text-decoration:none;white-space:nowrap;font-size:12px;font-weight:500;padding:5px 10px;border:1px solid #e0e7ff;border-radius:6px;background:#f5f3ff;transition:background .15s,border-color .15s}
+.botcreds-bar__back:hover{background:#ede9fe;border-color:#c4b5fd}
+@media(max-width:480px){.botcreds-bar__title{display:none}.botcreds-bar__back{font-size:11px;padding:4px 8px}}
+</style>
+<nav class="botcreds-bar" aria-label="BotCreds">
+<a class="botcreds-bar__logo" href="https://botcreds.com" target="_blank" rel="noopener"><span class="botcreds-bar__icon" aria-hidden="true">\xf0\x9f\xa4\x96</span><span class="botcreds-bar__name">BotCreds</span></a>
+<span class="botcreds-bar__title">' . $title_esc . '</span>
+<a class="botcreds-bar__back" href="' . esc_url( $back_url ) . '"><span aria-hidden="true">\xe2\x86\x90</span> All Artifacts</a>
+</nav>';
+}
+
 $post_id = get_the_ID();
 $body    = get_post_meta( $post_id, '_artifact_body',   true );
 $assets  = get_post_meta( $post_id, '_artifact_assets', true );
@@ -18,6 +44,13 @@ if ( empty( $body ) ) {
 	if ( ! empty( $raw_html ) ) {
 		header( 'Content-Type: text/html; charset=utf-8' );
 		header( 'X-Content-Type-Options: nosniff' );
+		// Inject BotCreds branding bar into legacy HTML artifacts.
+		$branding_bar = botcreds_artifacts_branding_bar( get_the_title() );
+		if ( stripos( $raw_html, '<body' ) !== false ) {
+			$raw_html = preg_replace( '/(<body[^>]*>)/i', '$1' . $branding_bar, $raw_html, 1 );
+		} else {
+			$raw_html = $branding_bar . $raw_html;
+		}
 		echo $raw_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		exit;
 	}
@@ -102,75 +135,7 @@ header( "Content-Security-Policy: $csp" );
 <body <?php body_class( 'artifact-page' ); ?>>
 	<?php wp_body_open(); ?>
 
-	<!-- BotCreds branding bar -->
-	<nav class="botcreds-bar" aria-label="BotCreds">
-		<a class="botcreds-bar__logo" href="https://botcreds.com" target="_blank" rel="noopener">
-			<span class="botcreds-bar__icon" aria-hidden="true">🤖</span>
-			<span class="botcreds-bar__name">BotCreds</span>
-		</a>
-		<span class="botcreds-bar__title"><?php echo esc_html( get_the_title() ); ?></span>
-		<a class="botcreds-bar__back" href="<?php echo esc_url( home_url( '/artifacts/' ) ); ?>">
-			<span aria-hidden="true">←</span> All Artifacts
-		</a>
-	</nav>
-	<style>
-	.botcreds-bar {
-		position: fixed;
-		top: 0; left: 0; right: 0;
-		height: 44px;
-		background: #ffffff;
-		border-bottom: 1px solid #e5e7eb;
-		box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-		display: flex;
-		align-items: center;
-		padding: 0 20px;
-		gap: 14px;
-		z-index: 9999;
-		font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
-		font-size: 13px;
-		line-height: 1;
-		box-sizing: border-box;
-	}
-	.botcreds-bar__logo {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		color: #1e1b4b;
-		font-weight: 700;
-		font-size: 14px;
-		text-decoration: none;
-		white-space: nowrap;
-		letter-spacing: -0.01em;
-	}
-	.botcreds-bar__logo:hover { color: #4f46e5; }
-	.botcreds-bar__icon { font-size: 16px; line-height: 1; }
-	.botcreds-bar__title {
-		flex: 1;
-		color: #6b7280;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		font-size: 13px;
-	}
-	.botcreds-bar__back {
-		color: #4f46e5;
-		text-decoration: none;
-		white-space: nowrap;
-		font-size: 12px;
-		font-weight: 500;
-		letter-spacing: 0.01em;
-		padding: 5px 10px;
-		border: 1px solid #e0e7ff;
-		border-radius: 6px;
-		background: #f5f3ff;
-		transition: background 0.15s, border-color 0.15s;
-	}
-	.botcreds-bar__back:hover { background: #ede9fe; border-color: #c4b5fd; }
-	@media (max-width: 480px) {
-		.botcreds-bar__title { display: none; }
-		.botcreds-bar__back { font-size: 11px; padding: 4px 8px; }
-	}
-	</style>
+	<?php echo botcreds_artifacts_branding_bar( get_the_title() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 
 	<div class="artifact-container">
 		<?php
