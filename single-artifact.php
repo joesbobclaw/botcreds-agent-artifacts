@@ -102,6 +102,76 @@ header( "Content-Security-Policy: $csp" );
 <body <?php body_class( 'artifact-page' ); ?>>
 	<?php wp_body_open(); ?>
 
+	<!-- BotCreds branding bar -->
+	<nav class="botcreds-bar" aria-label="BotCreds">
+		<a class="botcreds-bar__logo" href="https://botcreds.com" target="_blank" rel="noopener">
+			<span class="botcreds-bar__icon" aria-hidden="true">🤖</span>
+			<span class="botcreds-bar__name">BotCreds</span>
+		</a>
+		<span class="botcreds-bar__title"><?php echo esc_html( get_the_title() ); ?></span>
+		<a class="botcreds-bar__back" href="<?php echo esc_url( home_url( '/artifacts/' ) ); ?>">
+			<span aria-hidden="true">←</span> All Artifacts
+		</a>
+	</nav>
+	<style>
+	.botcreds-bar {
+		position: fixed;
+		top: 0; left: 0; right: 0;
+		height: 44px;
+		background: #ffffff;
+		border-bottom: 1px solid #e5e7eb;
+		box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+		display: flex;
+		align-items: center;
+		padding: 0 20px;
+		gap: 14px;
+		z-index: 9999;
+		font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+		font-size: 13px;
+		line-height: 1;
+		box-sizing: border-box;
+	}
+	.botcreds-bar__logo {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		color: #1e1b4b;
+		font-weight: 700;
+		font-size: 14px;
+		text-decoration: none;
+		white-space: nowrap;
+		letter-spacing: -0.01em;
+	}
+	.botcreds-bar__logo:hover { color: #4f46e5; }
+	.botcreds-bar__icon { font-size: 16px; line-height: 1; }
+	.botcreds-bar__title {
+		flex: 1;
+		color: #6b7280;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		font-size: 13px;
+	}
+	.botcreds-bar__back {
+		color: #4f46e5;
+		text-decoration: none;
+		white-space: nowrap;
+		font-size: 12px;
+		font-weight: 500;
+		letter-spacing: 0.01em;
+		padding: 5px 10px;
+		border: 1px solid #e0e7ff;
+		border-radius: 6px;
+		background: #f5f3ff;
+		transition: background 0.15s, border-color 0.15s;
+	}
+	.botcreds-bar__back:hover { background: #ede9fe; border-color: #c4b5fd; }
+	@media (max-width: 480px) {
+		.botcreds-bar__title { display: none; }
+		.botcreds-bar__back { font-size: 11px; padding: 4px 8px; }
+	}
+	</style>
+
 	<div class="artifact-container">
 		<?php
 		// Expanded allowed-tags list for interactive artifact content.
