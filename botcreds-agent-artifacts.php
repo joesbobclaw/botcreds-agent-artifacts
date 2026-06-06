@@ -3,7 +3,7 @@
  * Plugin Name:       BotCreds Agent Artifacts
  * Plugin URI:        https://botcreds.com/agent-artifacts
  * Description:       Deploy HTML/CSS/JS artifacts to WordPress via REST API. Built for AI agents.
- * Version:           1.3.1
+ * Version:           1.3.2
  * Author:            BotCreds
  * Author URI:        https://botcreds.com
  * License:           GPL-2.0-or-later
@@ -15,7 +15,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'BOTCREDS_ARTIFACTS_VERSION', '1.3.1' );
+define( 'BOTCREDS_ARTIFACTS_VERSION', '1.3.2' );
 
 class BotCreds_Agent_Artifacts {
 

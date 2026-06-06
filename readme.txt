@@ -3,8 +3,8 @@
 Contributors:      botcreds
 Tags:              artifacts, api, rest-api, ai, agents
 Requires at least: 6.0
-Tested up to:      6.8
-Stable tag:        1.3.1
+Tested up to:      7.0
+Stable tag:        1.3.2
 Requires PHP:      7.4
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -208,6 +208,10 @@ Use the `botcreds_agent_artifacts_csp` filter:
 2. The Artifacts list in WordPress admin.
 
 == Changelog ==
+
+= 1.3.2 =
+* Fix: prefix all template-scope variables in `single-artifact.php` with `botcreds_` to satisfy WordPress coding standards (PrefixAllGlobals)
+* Fix: bump "Tested up to" to 7.0
 
 = 1.3.1 =
 * Bug fix: external `<script src="...">` nodes are now correctly removed from the DOM before the body is serialized, preventing duplicate rendering

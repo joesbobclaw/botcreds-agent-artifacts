@@ -8,17 +8,17 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-$post_id = get_the_ID();
-$body    = get_post_meta( $post_id, '_artifact_body',   true );
-$assets  = get_post_meta( $post_id, '_artifact_assets', true );
+$botcreds_post_id = get_the_ID();
+$botcreds_body    = get_post_meta( $botcreds_post_id, '_artifact_body',   true );
+$botcreds_assets  = get_post_meta( $botcreds_post_id, '_artifact_assets', true );
 
 // Fallback: legacy raw HTML (pre-1.0 artifacts).
-if ( empty( $body ) ) {
-	$raw_html = get_post_meta( $post_id, 'artifact_html', true );
-	if ( ! empty( $raw_html ) ) {
+if ( empty( $botcreds_body ) ) {
+	$botcreds_raw_html = get_post_meta( $botcreds_post_id, 'artifact_html', true );
+	if ( ! empty( $botcreds_raw_html ) ) {
 		header( 'Content-Type: text/html; charset=utf-8' );
 		header( 'X-Content-Type-Options: nosniff' );
-		echo $raw_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo $botcreds_raw_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		exit;
 	}
 
@@ -37,11 +37,11 @@ header( 'X-Frame-Options: SAMEORIGIN' );
 header( 'Referrer-Policy: strict-origin-when-cross-origin' );
 
 // CSP — scripts are served as static files, so we can be strict.
-$upload_dir    = wp_upload_dir();
-$artifacts_url = $upload_dir['baseurl'] . '/artifacts/';
+$botcreds_upload_dir    = wp_upload_dir();
+$botcreds_artifacts_url = $botcreds_upload_dir['baseurl'] . '/artifacts/';
 
 // Trusted CDN origins — scripts, styles, and fonts.
-$cdn_origins = implode( ' ', [
+$botcreds_cdn_origins = implode( ' ', [
 	'https://cdn.jsdelivr.net',
 	'https://unpkg.com',
 	'https://cdnjs.cloudflare.com',
@@ -50,36 +50,36 @@ $cdn_origins = implode( ' ', [
 ] );
 
 // Per-artifact fetch allowlist — set via pragma or deploy-time meta.
-$artifact_connect_src = get_post_meta( $post_id, '_artifact_connect_src', true );
-$connect_src_value    = "'self'";
-if ( ! empty( $artifact_connect_src ) && is_array( $artifact_connect_src ) ) {
-	$safe_origins      = implode( ' ', array_map( 'esc_url_raw', $artifact_connect_src ) );
-	$connect_src_value = "'self' {$safe_origins}";
+$botcreds_connect_src       = get_post_meta( $botcreds_post_id, '_artifact_connect_src', true );
+$botcreds_connect_src_value = "'self'";
+if ( ! empty( $botcreds_connect_src ) && is_array( $botcreds_connect_src ) ) {
+	$botcreds_safe_origins      = implode( ' ', array_map( 'esc_url_raw', $botcreds_connect_src ) );
+	$botcreds_connect_src_value = "'self' {$botcreds_safe_origins}";
 }
 
-$csp_parts = [
+$botcreds_csp_parts = [
 	"default-src 'self'",
-	"script-src 'self' {$artifacts_url} {$cdn_origins}",
-	"style-src 'self' 'unsafe-inline' {$artifacts_url} {$cdn_origins} https://fonts.googleapis.com",
+	"script-src 'self' {$botcreds_artifacts_url} {$botcreds_cdn_origins}",
+	"style-src 'self' 'unsafe-inline' {$botcreds_artifacts_url} {$botcreds_cdn_origins} https://fonts.googleapis.com",
 	"img-src 'self' data: blob: https://pixel.wp.com https://stats.wordpress.com",
-	"font-src 'self' data: https://fonts.gstatic.com {$cdn_origins}",
-	"connect-src {$connect_src_value} https://pixel.wp.com https://stats.wordpress.com",
+	"font-src 'self' data: https://fonts.gstatic.com {$botcreds_cdn_origins}",
+	"connect-src {$botcreds_connect_src_value} https://pixel.wp.com https://stats.wordpress.com",
 	"frame-src 'none'",
 	"frame-ancestors 'self'",
 	"form-action 'self'",
 	"base-uri 'self'",
 ];
 
-$csp = implode( '; ', $csp_parts );
+$botcreds_csp = implode( '; ', $botcreds_csp_parts );
 
 /**
  * Filters the Content Security Policy header for artifact pages.
  *
- * @param string $csp     The CSP header value.
- * @param int    $post_id The artifact post ID.
+ * @param string $botcreds_csp     The CSP header value.
+ * @param int    $botcreds_post_id The artifact post ID.
  */
-$csp = apply_filters( 'botcreds_agent_artifacts_csp', $csp, $post_id );
-header( "Content-Security-Policy: $csp" );
+$botcreds_csp = apply_filters( 'botcreds_agent_artifacts_csp', $botcreds_csp, $botcreds_post_id );
+header( "Content-Security-Policy: $botcreds_csp" );
 
 ?>
 <!DOCTYPE html>
@@ -90,9 +90,9 @@ header( "Content-Security-Policy: $csp" );
 	<title><?php echo esc_html( get_the_title() ); ?> &mdash; <?php bloginfo( 'name' ); ?></title>
 	<?php
 	// Output any preserved <head> content (meta tags, etc.).
-	if ( ! empty( $assets['head'] ) ) {
-		$head_content = preg_replace( '/<\/?head[^>]*>/i', '', $assets['head'] );
-		echo $head_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	if ( ! empty( $botcreds_assets['head'] ) ) {
+		$botcreds_head_content = preg_replace( '/<\/?head[^>]*>/i', '', $botcreds_assets['head'] );
+		echo $botcreds_head_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 
 	// WordPress head — includes enqueued styles.
@@ -105,60 +105,60 @@ header( "Content-Security-Policy: $csp" );
 	<div class="artifact-container">
 		<?php
 		// Expanded allowed-tags list for interactive artifact content.
-		$allowed_html = wp_kses_allowed_html( 'post' );
+		$botcreds_allowed_html = wp_kses_allowed_html( 'post' );
 
-		$allowed_html['canvas'] = [
+		$botcreds_allowed_html['canvas'] = [
 			'id' => true, 'class' => true, 'width' => true, 'height' => true, 'style' => true,
 		];
-		$allowed_html['svg'] = [
+		$botcreds_allowed_html['svg'] = [
 			'xmlns' => true, 'viewbox' => true, 'width' => true, 'height' => true,
 			'class' => true, 'id' => true, 'style' => true,
 		];
-		$allowed_html['path'] = [
+		$botcreds_allowed_html['path'] = [
 			'd' => true, 'fill' => true, 'stroke' => true, 'class' => true,
 		];
-		$allowed_html['input'] = [
+		$botcreds_allowed_html['input'] = [
 			'type' => true, 'id' => true, 'class' => true, 'name' => true,
 			'value' => true, 'placeholder' => true, 'disabled' => true,
 			'readonly' => true, 'checked' => true, 'min' => true, 'max' => true,
 			'step' => true, 'style' => true,
 		];
-		$allowed_html['button'] = [
+		$botcreds_allowed_html['button'] = [
 			'type' => true, 'id' => true, 'class' => true, 'disabled' => true, 'style' => true,
 		];
-		$allowed_html['select'] = [
+		$botcreds_allowed_html['select'] = [
 			'id' => true, 'class' => true, 'name' => true, 'style' => true,
 		];
-		$allowed_html['option'] = [
+		$botcreds_allowed_html['option'] = [
 			'value' => true, 'selected' => true,
 		];
-		$allowed_html['label'] = [
+		$botcreds_allowed_html['label'] = [
 			'for' => true, 'class' => true,
 		];
-		$allowed_html['video'] = [
+		$botcreds_allowed_html['video'] = [
 			'src' => true, 'controls' => true, 'autoplay' => true, 'loop' => true,
 			'muted' => true, 'width' => true, 'height' => true, 'class' => true, 'id' => true,
 		];
-		$allowed_html['audio'] = [
+		$botcreds_allowed_html['audio'] = [
 			'src' => true, 'controls' => true, 'autoplay' => true, 'loop' => true,
 			'class' => true, 'id' => true,
 		];
 
 		// Allow data-* on common interactive elements.
-		foreach ( [ 'div', 'span', 'button', 'input', 'a', 'canvas' ] as $tag ) {
-			if ( isset( $allowed_html[ $tag ] ) ) {
-				$allowed_html[ $tag ]['data-*'] = true;
+		foreach ( [ 'div', 'span', 'button', 'input', 'a', 'canvas' ] as $botcreds_tag ) {
+			if ( isset( $botcreds_allowed_html[ $botcreds_tag ] ) ) {
+				$botcreds_allowed_html[ $botcreds_tag ]['data-*'] = true;
 			}
 		}
 
 		/**
 		 * Filters the allowed HTML tags for artifact body output.
 		 *
-		 * @param array $allowed_html Allowed HTML tags and attributes.
+		 * @param array $botcreds_allowed_html Allowed HTML tags and attributes.
 		 */
-		$allowed_html = apply_filters( 'botcreds_agent_artifacts_allowed_html', $allowed_html );
+		$botcreds_allowed_html = apply_filters( 'botcreds_agent_artifacts_allowed_html', $botcreds_allowed_html );
 
-		echo wp_kses( $body, $allowed_html );
+		echo wp_kses( $botcreds_body, $botcreds_allowed_html );
 		?>
 	</div>
 
