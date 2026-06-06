@@ -3,7 +3,7 @@
  * Plugin Name:       BotCreds Agent Artifacts
  * Plugin URI:        https://botcreds.com/agent-artifacts
  * Description:       Deploy HTML/CSS/JS artifacts to WordPress via REST API. Built for AI agents.
- * Version:           1.3.2
+ * Version:           1.3.3
  * Author:            BotCreds
  * Author URI:        https://botcreds.com
  * License:           GPL-2.0-or-later
@@ -320,12 +320,22 @@ class BotCreds_Agent_Artifacts {
 // Boot.
 BotCreds_Agent_Artifacts::instance();
 
-// Activation: grant artifact capabilities to Administrators.
+// Activation: grant artifact capabilities by role.
 register_activation_hook( __FILE__, function () {
-	$admin = get_role( 'administrator' );
-	if ( $admin ) {
-		foreach ( [ 'edit', 'edit_others', 'publish', 'read_private', 'delete', 'delete_others', 'edit_published', 'delete_published' ] as $cap ) {
-			$admin->add_cap( $cap . '_artifacts' );
+	// Administrators and Editors get full management access.
+	foreach ( [ 'administrator', 'editor' ] as $role_name ) {
+		$role = get_role( $role_name );
+		if ( $role ) {
+			foreach ( [ 'edit', 'edit_others', 'publish', 'read_private', 'delete', 'delete_others', 'edit_published', 'delete_published' ] as $cap ) {
+				$role->add_cap( $cap . '_artifacts' );
+			}
+		}
+	}
+	// Authors can create, publish, and manage their own artifacts — same as posts.
+	$author = get_role( 'author' );
+	if ( $author ) {
+		foreach ( [ 'edit', 'publish', 'delete', 'edit_published', 'delete_published' ] as $cap ) {
+			$author->add_cap( $cap . '_artifacts' );
 		}
 	}
 	flush_rewrite_rules();
