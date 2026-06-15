@@ -1,10 +1,10 @@
 === BotCreds Agent Artifacts ===
 
-Contributors:      botcreds
+Contributors:      botcreds, jboydston
 Tags:              artifacts, api, rest-api, ai, agents
 Requires at least: 6.0
 Tested up to:      7.0
-Stable tag:        1.3.2
+Stable tag:        1.3.4
 Requires PHP:      7.4
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -208,6 +208,14 @@ Use the `botcreds_agent_artifacts_csp` filter:
 2. The Artifacts list in WordPress admin.
 
 == Changelog ==
+
+= 1.3.4 =
+* Fix: sanitize head content output in single-artifact.php using wp_kses() with a safe head-element allowlist
+* Fix: rename BOTCREDS_ARTIFACTS_VERSION constant to BCAA_VERSION to use a unique 4-character plugin-specific prefix (resolves PrefixAllGlobals notice)
+
+= 1.3.3 =
+* Fix: align version constant and Stable tag with plugin header
+* Fix: add jboydston to Contributors list
 
 = 1.3.2 =
 * Fix: prefix all template-scope variables in `single-artifact.php` with `botcreds_` to satisfy WordPress coding standards (PrefixAllGlobals)

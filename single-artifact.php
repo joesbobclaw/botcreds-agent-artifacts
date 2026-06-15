@@ -92,7 +92,14 @@ header( "Content-Security-Policy: $botcreds_csp" );
 	// Output any preserved <head> content (meta tags, etc.).
 	if ( ! empty( $botcreds_assets['head'] ) ) {
 		$botcreds_head_content = preg_replace( '/<\/?head[^>]*>/i', '', $botcreds_assets['head'] );
-		echo $botcreds_head_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		// Sanitize head content — allow only safe, non-executable head elements.
+		$botcreds_head_allowed = [
+			'meta'  => [ 'name' => true, 'content' => true, 'charset' => true, 'http-equiv' => true, 'property' => true ],
+			'link'  => [ 'rel' => true, 'href' => true, 'type' => true, 'media' => true, 'crossorigin' => true ],
+			'title' => [],
+			'base'  => [ 'href' => true, 'target' => true ],
+		];
+		echo wp_kses( $botcreds_head_content, $botcreds_head_allowed );
 	}
 
 	// WordPress head — includes enqueued styles.
