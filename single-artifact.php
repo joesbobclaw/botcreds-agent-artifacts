@@ -3,22 +3,24 @@
  * Template for rendering BotCreds Agent Artifacts.
  * Uses properly enqueued scripts/styles via WordPress.
  *
- * @package BotCreds_Agent_Artifacts
+ * @package BCAA
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-$botcreds_post_id = get_the_ID();
-$botcreds_body    = get_post_meta( $botcreds_post_id, '_artifact_body',   true );
-$botcreds_assets  = get_post_meta( $botcreds_post_id, '_artifact_assets', true );
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template file; variables are scoped to this include context, not truly global.
+
+$bcaa_post_id = get_the_ID();
+$bcaa_body    = get_post_meta( $bcaa_post_id, '_artifact_body',   true );
+$bcaa_assets  = get_post_meta( $bcaa_post_id, '_artifact_assets', true );
 
 // Fallback: legacy raw HTML (pre-1.0 artifacts).
-if ( empty( $botcreds_body ) ) {
-	$botcreds_raw_html = get_post_meta( $botcreds_post_id, 'artifact_html', true );
-	if ( ! empty( $botcreds_raw_html ) ) {
+if ( empty( $bcaa_body ) ) {
+	$bcaa_raw_html = get_post_meta( $bcaa_post_id, 'artifact_html', true );
+	if ( ! empty( $bcaa_raw_html ) ) {
 		header( 'Content-Type: text/html; charset=utf-8' );
 		header( 'X-Content-Type-Options: nosniff' );
-		echo $botcreds_raw_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo $bcaa_raw_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		exit;
 	}
 
@@ -37,11 +39,11 @@ header( 'X-Frame-Options: SAMEORIGIN' );
 header( 'Referrer-Policy: strict-origin-when-cross-origin' );
 
 // CSP — scripts are served as static files, so we can be strict.
-$botcreds_upload_dir    = wp_upload_dir();
-$botcreds_artifacts_url = $botcreds_upload_dir['baseurl'] . '/artifacts/';
+$bcaa_upload_dir    = wp_upload_dir();
+$bcaa_artifacts_url = $bcaa_upload_dir['baseurl'] . '/artifacts/';
 
 // Trusted CDN origins — scripts, styles, and fonts.
-$botcreds_cdn_origins = implode( ' ', [
+$bcaa_cdn_origins = implode( ' ', [
 	'https://cdn.jsdelivr.net',
 	'https://unpkg.com',
 	'https://cdnjs.cloudflare.com',
@@ -50,36 +52,36 @@ $botcreds_cdn_origins = implode( ' ', [
 ] );
 
 // Per-artifact fetch allowlist — set via pragma or deploy-time meta.
-$botcreds_connect_src       = get_post_meta( $botcreds_post_id, '_artifact_connect_src', true );
-$botcreds_connect_src_value = "'self'";
-if ( ! empty( $botcreds_connect_src ) && is_array( $botcreds_connect_src ) ) {
-	$botcreds_safe_origins      = implode( ' ', array_map( 'esc_url_raw', $botcreds_connect_src ) );
-	$botcreds_connect_src_value = "'self' {$botcreds_safe_origins}";
+$bcaa_connect_src       = get_post_meta( $bcaa_post_id, '_artifact_connect_src', true );
+$bcaa_connect_src_value = "'self'";
+if ( ! empty( $bcaa_connect_src ) && is_array( $bcaa_connect_src ) ) {
+	$bcaa_safe_origins      = implode( ' ', array_map( 'esc_url_raw', $bcaa_connect_src ) );
+	$bcaa_connect_src_value = "'self' {$bcaa_safe_origins}";
 }
 
-$botcreds_csp_parts = [
+$bcaa_csp_parts = [
 	"default-src 'self'",
-	"script-src 'self' {$botcreds_artifacts_url} {$botcreds_cdn_origins}",
-	"style-src 'self' 'unsafe-inline' {$botcreds_artifacts_url} {$botcreds_cdn_origins} https://fonts.googleapis.com",
+	"script-src 'self' {$bcaa_artifacts_url} {$bcaa_cdn_origins}",
+	"style-src 'self' 'unsafe-inline' {$bcaa_artifacts_url} {$bcaa_cdn_origins} https://fonts.googleapis.com",
 	"img-src 'self' data: blob: https://pixel.wp.com https://stats.wordpress.com",
-	"font-src 'self' data: https://fonts.gstatic.com {$botcreds_cdn_origins}",
-	"connect-src {$botcreds_connect_src_value} https://pixel.wp.com https://stats.wordpress.com",
+	"font-src 'self' data: https://fonts.gstatic.com {$bcaa_cdn_origins}",
+	"connect-src {$bcaa_connect_src_value} https://pixel.wp.com https://stats.wordpress.com",
 	"frame-src 'none'",
 	"frame-ancestors 'self'",
 	"form-action 'self'",
 	"base-uri 'self'",
 ];
 
-$botcreds_csp = implode( '; ', $botcreds_csp_parts );
+$bcaa_csp = implode( '; ', $bcaa_csp_parts );
 
 /**
  * Filters the Content Security Policy header for artifact pages.
  *
- * @param string $botcreds_csp     The CSP header value.
- * @param int    $botcreds_post_id The artifact post ID.
+ * @param string $bcaa_csp     The CSP header value.
+ * @param int    $bcaa_post_id The artifact post ID.
  */
-$botcreds_csp = apply_filters( 'botcreds_agent_artifacts_csp', $botcreds_csp, $botcreds_post_id );
-header( "Content-Security-Policy: $botcreds_csp" );
+$bcaa_csp = apply_filters( 'botcreds_agent_artifacts_csp', $bcaa_csp, $bcaa_post_id );
+header( "Content-Security-Policy: $bcaa_csp" );
 
 ?>
 <!DOCTYPE html>
@@ -90,16 +92,16 @@ header( "Content-Security-Policy: $botcreds_csp" );
 	<title><?php echo esc_html( get_the_title() ); ?> &mdash; <?php bloginfo( 'name' ); ?></title>
 	<?php
 	// Output any preserved <head> content (meta tags, etc.).
-	if ( ! empty( $botcreds_assets['head'] ) ) {
-		$botcreds_head_content = preg_replace( '/<\/?head[^>]*>/i', '', $botcreds_assets['head'] );
+	if ( ! empty( $bcaa_assets['head'] ) ) {
+		$bcaa_head_content = preg_replace( '/<\/?head[^>]*>/i', '', $bcaa_assets['head'] );
 		// Sanitize head content — allow only safe, non-executable head elements.
-		$botcreds_head_allowed = [
+		$bcaa_head_allowed = [
 			'meta'  => [ 'name' => true, 'content' => true, 'charset' => true, 'http-equiv' => true, 'property' => true ],
 			'link'  => [ 'rel' => true, 'href' => true, 'type' => true, 'media' => true, 'crossorigin' => true ],
 			'title' => [],
 			'base'  => [ 'href' => true, 'target' => true ],
 		];
-		echo wp_kses( $botcreds_head_content, $botcreds_head_allowed );
+		echo wp_kses( $bcaa_head_content, $bcaa_head_allowed );
 	}
 
 	// WordPress head — includes enqueued styles.
@@ -112,60 +114,60 @@ header( "Content-Security-Policy: $botcreds_csp" );
 	<div class="artifact-container">
 		<?php
 		// Expanded allowed-tags list for interactive artifact content.
-		$botcreds_allowed_html = wp_kses_allowed_html( 'post' );
+		$bcaa_allowed_html = wp_kses_allowed_html( 'post' );
 
-		$botcreds_allowed_html['canvas'] = [
+		$bcaa_allowed_html['canvas'] = [
 			'id' => true, 'class' => true, 'width' => true, 'height' => true, 'style' => true,
 		];
-		$botcreds_allowed_html['svg'] = [
+		$bcaa_allowed_html['svg'] = [
 			'xmlns' => true, 'viewbox' => true, 'width' => true, 'height' => true,
 			'class' => true, 'id' => true, 'style' => true,
 		];
-		$botcreds_allowed_html['path'] = [
+		$bcaa_allowed_html['path'] = [
 			'd' => true, 'fill' => true, 'stroke' => true, 'class' => true,
 		];
-		$botcreds_allowed_html['input'] = [
+		$bcaa_allowed_html['input'] = [
 			'type' => true, 'id' => true, 'class' => true, 'name' => true,
 			'value' => true, 'placeholder' => true, 'disabled' => true,
 			'readonly' => true, 'checked' => true, 'min' => true, 'max' => true,
 			'step' => true, 'style' => true,
 		];
-		$botcreds_allowed_html['button'] = [
+		$bcaa_allowed_html['button'] = [
 			'type' => true, 'id' => true, 'class' => true, 'disabled' => true, 'style' => true,
 		];
-		$botcreds_allowed_html['select'] = [
+		$bcaa_allowed_html['select'] = [
 			'id' => true, 'class' => true, 'name' => true, 'style' => true,
 		];
-		$botcreds_allowed_html['option'] = [
+		$bcaa_allowed_html['option'] = [
 			'value' => true, 'selected' => true,
 		];
-		$botcreds_allowed_html['label'] = [
+		$bcaa_allowed_html['label'] = [
 			'for' => true, 'class' => true,
 		];
-		$botcreds_allowed_html['video'] = [
+		$bcaa_allowed_html['video'] = [
 			'src' => true, 'controls' => true, 'autoplay' => true, 'loop' => true,
 			'muted' => true, 'width' => true, 'height' => true, 'class' => true, 'id' => true,
 		];
-		$botcreds_allowed_html['audio'] = [
+		$bcaa_allowed_html['audio'] = [
 			'src' => true, 'controls' => true, 'autoplay' => true, 'loop' => true,
 			'class' => true, 'id' => true,
 		];
 
 		// Allow data-* on common interactive elements.
-		foreach ( [ 'div', 'span', 'button', 'input', 'a', 'canvas' ] as $botcreds_tag ) {
-			if ( isset( $botcreds_allowed_html[ $botcreds_tag ] ) ) {
-				$botcreds_allowed_html[ $botcreds_tag ]['data-*'] = true;
+		foreach ( [ 'div', 'span', 'button', 'input', 'a', 'canvas' ] as $bcaa_tag ) {
+			if ( isset( $bcaa_allowed_html[ $bcaa_tag ] ) ) {
+				$bcaa_allowed_html[ $bcaa_tag ]['data-*'] = true;
 			}
 		}
 
 		/**
 		 * Filters the allowed HTML tags for artifact body output.
 		 *
-		 * @param array $botcreds_allowed_html Allowed HTML tags and attributes.
+		 * @param array $bcaa_allowed_html Allowed HTML tags and attributes.
 		 */
-		$botcreds_allowed_html = apply_filters( 'botcreds_agent_artifacts_allowed_html', $botcreds_allowed_html );
+		$bcaa_allowed_html = apply_filters( 'botcreds_agent_artifacts_allowed_html', $bcaa_allowed_html );
 
-		echo wp_kses( $botcreds_body, $botcreds_allowed_html );
+		echo wp_kses( $bcaa_body, $bcaa_allowed_html );
 		?>
 	</div>
 

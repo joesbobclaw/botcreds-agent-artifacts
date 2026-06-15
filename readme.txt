@@ -210,8 +210,8 @@ Use the `botcreds_agent_artifacts_csp` filter:
 == Changelog ==
 
 = 1.3.4 =
-* Fix: sanitize head content output in single-artifact.php using wp_kses() with a safe head-element allowlist
-* Fix: rename BOTCREDS_ARTIFACTS_VERSION constant to BCAA_VERSION to use a unique 4-character plugin-specific prefix (resolves PrefixAllGlobals notice)
+* Fix: sanitize head content output in single-artifact.php using wp_kses() with a safe head-element allowlist (meta, link, title, base)
+* Fix: rename BOTCREDS_ARTIFACTS_VERSION constant to BCAA_VERSION and template variables to bcaa_ prefix to satisfy PrefixAllGlobals coding standard
 
 = 1.3.3 =
 * Fix: align version constant and Stable tag with plugin header
